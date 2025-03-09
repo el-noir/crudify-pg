@@ -1,0 +1,11 @@
+{
+  "name": "postgresql-node",
+  "version": "1.0.0",
+  "description": "Crud operations in Nodejs with PostGreSql",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "el-noir",
+  "license": "ISC"
+}
