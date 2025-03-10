@@ -1,9 +1,20 @@
-import pool from '../db/index.js';
+
+import { createUserService, getAllUsersService, updateUserService } from '../models/user.model.js';
+
+const handleResponse = (res, status, message, data=null)=>{
+    res.status(status).json({
+        status, 
+        message,
+        data,
+    });
+}
+
+
 
 export const getAllUsers = async (req, res, next) => {
     try {
-        const { rows } = await pool.query('SELECT * FROM users ORDER BY id ASC');
-        res.status(200).json(rows);
+        const users= await getAllUsersService();
+        handleResponse(res, 200, "User fetched Successfully", users)
     } catch (error) {
         next(error);
     }
@@ -11,14 +22,9 @@ export const getAllUsers = async (req, res, next) => {
 
 export const getUserById = async (req, res, next) => {
     try {
-        const id = parseInt(req.params.id);
-        const { rows } = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
-
-        if (rows.length === 0) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-
-        res.status(200).json(rows[0]);
+        const user = await getUserByIdService(req.params.id);
+        if(!user) return handleResponse(res, 404, "User not found");
+        handleResponse(res, 200, "User fetched Successfully", user)
     } catch (error) {
         next(error);
     }
@@ -27,40 +33,30 @@ export const getUserById = async (req, res, next) => {
 export const createUser = async (req, res, next) => {
     try {
         const { name, email } = req.body;
-        const { rows } = await pool.query('INSERT INTO users (name, email) VALUES ($1, $2) RETURNING id', [name, email]);
-
-        res.status(201).json({ message: 'User created', id: rows[0].id });
-    } catch (error) {
-        next(error);
+       const newUser = await createUserService(name, email);
+        handleResponse(res, 201, "User Created Successfully", newUser)
+    } catch (err) {
+        next(err);
     }
 };
 
 export const updateUser = async (req, res, next) => {
+    const { name, email } = req.body;
     try {
-        const id = parseInt(req.params.id);
-        const { name, email } = req.body;
-        const { rowCount } = await pool.query('UPDATE users SET name = $1, email = $2 WHERE id = $3', [name, email, id]);
-
-        if (rowCount === 0) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-
-        res.status(200).json({ message: `User with ID ${id} updated` });
+        const updatedUser = await updateUserService(req.params.id, name, email);
+        if (!updatedUser) return handleResponse(res, 404, "User not found");
+        handleResponse(res, 200, "User updated Successfully", updatedUser);
     } catch (error) {
         next(error);
     }
 };
 
+
 export const deleteUser = async (req, res, next) => {
     try {
-        const id = parseInt(req.params.id);
-        const { rowCount } = await pool.query('DELETE FROM users WHERE id = $1', [id]);
-
-        if (rowCount === 0) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-
-        res.status(200).json({ message: `User with ID ${id} deleted` });
+        const deletedUser = await deleteUserService(req.params.id);
+        if (!deletedUser) return handleResponse(res, 404, "User not found");
+        handleResponse(res, 200, "User deleted Successfully", deletedUser);
     } catch (error) {
         next(error);
     }

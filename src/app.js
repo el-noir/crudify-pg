@@ -5,6 +5,7 @@ import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import userRoutes from './routes/user.route.js';
 import errorHandler from './middlewares/error.handle.js';
+import createUserTable from './data/create.user.table.js';
 
 const app = express();
 
@@ -15,6 +16,10 @@ app.use(cors({
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use(errorHandler)
+
+createUserTable();
 
 passport.use(new LocalStrategy(
     function (username, password, done) {
